@@ -39,7 +39,11 @@ $GHBU_SILENT || echo "Using backup directory $GHBU_BACKUP_DIR"
 check mkdir -p $GHBU_BACKUP_DIR
 
 $GHBU_SILENT || echo -n "Fetching list of repositories for ${GHBU_ORG}..."
+
 REPOLIST=`check curl --silent -u $GHBU_UNAME:$GHBU_PASSWD ${GHBU_API}/orgs/${GHBU_ORG}/repos -q | check grep "\"name\"" | check awk -F': "' '{print $2}' | check sed -e 's/",//g'`
+# NOTE: if you're backing up a *user's* repos, not an organizations, use this instead:
+# REPOLIST=`check curl --silent -u $GHBU_UNAME:$GHBU_PASSWD ${GHBU_API}/user/repos -q | check grep "\"name\"" | check awk -F': "' '{print $2}' | check sed -e 's/",//g'`
+
 $GHBU_SILENT || echo "found `echo $REPOLIST | wc -w` repositories."
 
 
