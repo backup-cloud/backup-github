@@ -14,7 +14,7 @@ GHBU_PRUNE_OLD=${GHBU_PRUNE_OLD-true}                                # when `tru
 GHBU_PRUNE_AFTER_N_DAYS=${GHBU_PRUNE_AFTER_N_DAYS-3}                 # the min age (in days) of backup files to delete
 GHBU_SILENT=${GHBU_SILENT-false}                                     # when `true`, only show error messages 
 GHBU_API=${GHBU_API-"https://api.github.com"}                        # base URI for the GitHub API
-GHBU_GIT_CLONE_CMD=(git clone --quiet --mirror git@${GHBU_GITHOST}:) # base command to use to clone GitHub repos
+GHBU_GIT_CLONE_CMD=(git clone --quiet --mirror) # base command to use to clone GitHub repos
 
 TSTAMP=$(date "+%Y%m%d-%H%M")
 
@@ -54,10 +54,10 @@ $GHBU_SILENT || (echo "" && echo "=== BACKING UP ===" && echo "")
 
 for REPO in $REPOLIST; do
    $GHBU_SILENT || echo "Backing up ${GHBU_ORG}/${REPO}"
-   check "${GHBU_GIT_CLONE_CMD[@]}${GHBU_ORG}/${REPO}.git" "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}-${TSTAMP}.git" && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}-${TSTAMP}.git"
+   check "${GHBU_GIT_CLONE_CMD[@]}" "git@${GHBU_GITHOST}:${GHBU_ORG}/${REPO}.git" "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}-${TSTAMP}.git" && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}-${TSTAMP}.git"
 
    $GHBU_SILENT || echo "Backing up ${GHBU_ORG}/${REPO}.wiki (if any)"
-   "${GHBU_GIT_CLONE_CMD[@]}${GHBU_ORG}/${REPO}.wiki.git" "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.wiki-${TSTAMP}.git" 2>/dev/null && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.wiki-${TSTAMP}.git"
+   "${GHBU_GIT_CLONE_CMD[@]}" "git@${GHBU_GITHOST}:${GHBU_ORG}/${REPO}.wiki.git" "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.wiki-${TSTAMP}.git" 2>/dev/null && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.wiki-${TSTAMP}.git"
 
    $GHBU_SILENT || echo "Backing up ${GHBU_ORG}/${REPO} issues"
    check curl --silent -u "$GHBU_UNAME:$GHBU_PASSWD" "${GHBU_API}/repos/${GHBU_ORG}/${REPO}/issues" -q > "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.issues-${TSTAMP}" && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.issues-${TSTAMP}"
