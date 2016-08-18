@@ -32,7 +32,7 @@ mkdir -p "$GHBU_BACKUP_DIR"
 
 $GHBU_SILENT || echo -n "Fetching list of repositories for ${GHBU_ORG}..."
 
-REPOLIST=$(curl --silent -u "$GHBU_UNAME:$GHBU_PASSWD" "${GHBU_API}/orgs/${GHBU_ORG}/repos\?per_page=100" -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g')
+REPOLIST=$(curl --silent -u "$GHBU_UNAME:$GHBU_PASSWD" "${GHBU_API}/orgs/${GHBU_ORG}/repos" -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g')
 # NOTE: if you're backing up a *user's* repos, not an organizations, use this instead:
 # REPOLIST=`curl --silent -u $GHBU_UNAME:$GHBU_PASSWD ${GHBU_API}/user/repos -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g'`
 
