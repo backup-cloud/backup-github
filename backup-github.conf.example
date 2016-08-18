@@ -1,0 +1,14 @@
+#This is an example configuration file.  You must set the values marked <CHANGE-ME>
+
+GHBU_ORG="<CHANGE-ME>"                             # the GitHub organization whose repos will be backed up
+                                                   # (if you're backing up a user's repos instead, this should be your GitHub username)
+GHBU_UNAME="<CHANGE-ME>"                           # the username of a GitHub account (to use with the GitHub API)
+GHBU_PASSWD="<CHANGE-ME>"                          # the password for that account 
+
+#The following are default values.  Change and uncomment if you want to alter the default. 
+
+#GHBU_BACKUP_DIR="github-backups"                  # where to place the backup files
+#GHBU_GITHOST="github.com"                         # the GitHub hostname (see comments)
+#GHBU_PRUNE_OLD=true                               # when `true`, old backups will be deleted
+#GHBU_PRUNE_AFTER_N_DAYS=3                         # the min age (in days) of backup files to delete
+#GHBU_SILENT=false                                 # when `true`, only show error messages 

@@ -4,16 +4,32 @@
 # NOTE: if you have more than 100 repositories, you'll need to step thru the list of repos 
 # returned by GitHub one page at a time, as described at https://gist.github.com/darktim/5582423
 
+GHBU_CONFIGFILE=${GHBU_CONFIGFILE-"/usr/local/etc/backup-github.config"}
+
+if [ ! -r $GHBU_CONFIGFILE ]
+then
+    echo "No configfile $GHBU_CONFIGFILE - aborting"
+    exit 5
+fi
+
+. "${GHBU_CONFIGFILE}"
+
+for VARNAME in GHBU_ORG GHBU_UNAME GHBU_PASSWD
+do
+    if [ "A" == "A${!VARNAME}" -o "<CHANGE-ME>" == "${!VARNAME}" ]
+    then
+	echo "${VARNAME} not set.  You need to set it in ${GHBU_CONFIGFILE}." >&2
+	exit 5
+    fi
+done
+
 GHBU_BACKUP_DIR=${GHBU_BACKUP_DIR-"github-backups"}                  # where to place the backup files
-GHBU_ORG=${GHBU_ORG-"<CHANGE-ME>"}                                   # the GitHub organization whose repos will be backed up
-                                                                     # (if you're backing up a user's repos instead, this should be your GitHub username)
-GHBU_UNAME=${GHBU_UNAME-"<CHANGE-ME>"}                               # the username of a GitHub account (to use with the GitHub API)
-GHBU_PASSWD=${GHBU_PASSWD-"<CHANGE-ME>"}                             # the password for that account 
 GHBU_GITHOST=${GHBU_GITHOST-"github.com"}                            # the GitHub hostname (see comments)
 GHBU_PRUNE_OLD=${GHBU_PRUNE_OLD-true}                                # when `true`, old backups will be deleted
 GHBU_PRUNE_AFTER_N_DAYS=${GHBU_PRUNE_AFTER_N_DAYS-3}                 # the min age (in days) of backup files to delete
 GHBU_SILENT=${GHBU_SILENT-false}                                     # when `true`, only show error messages 
 GHBU_API=${GHBU_API-"https://api.github.com"}                        # base URI for the GitHub API
+
 GHBU_GIT_CLONE_CMD=(git clone --quiet --mirror) # base command to use to clone GitHub repos
 
 TSTAMP=$(date "+%Y%m%d-%H%M")
