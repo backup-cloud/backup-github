@@ -4,7 +4,7 @@
 # NOTE: if you have more than 100 repositories, you'll need to step thru the list of repos 
 # returned by GitHub one page at a time, as described at https://gist.github.com/darktim/5582423
 
-GHBU_CONFIGFILE=${GHBU_CONFIGFILE-"/usr/local/etc/backup-github.config"}
+GHBU_CONFIGFILE=${GHBU_CONFIGFILE-"/usr/local/backup/backup-github.config"}
 
 if [ ! -r $GHBU_CONFIGFILE ]
 then
@@ -14,7 +14,7 @@ fi
 
 . "${GHBU_CONFIGFILE}"
 
-for VARNAME in GHBU_ORG GHBU_UNAME GHBU_PASSWD
+for VARNAME in GHBU_ORG
 do
     if [ "A" == "A${!VARNAME}" -o "<CHANGE-ME>" == "${!VARNAME}" ]
     then
@@ -41,13 +41,18 @@ function tgz {
    tar zcf "$1.tar.gz" "$1" && rm -rf "$1"
 }
 
+<<<<<<< HEAD
 $GHBU_SILENT || (echo "" && echo "=== INITIALIZING ===" && echo "")
+=======
+$GHBU_SILENT || (echo "" && echo "=== INITIALIZING ===" && echo "") 
+>>>>>>> first commit into the repo containing all the files
 
 $GHBU_SILENT || echo "Using backup directory $GHBU_BACKUP_DIR"
 mkdir -p "$GHBU_BACKUP_DIR"
 
 $GHBU_SILENT || echo -n "Fetching list of repositories for ${GHBU_ORG}..."
 
+<<<<<<< HEAD
 REPOLIST=$(curl --silent -u "$GHBU_UNAME:$GHBU_PASSWD" "${GHBU_API}/orgs/${GHBU_ORG}/repos" -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g')
 # NOTE: if you're backing up a *user's* repos, not an organizations, use this instead:
 # REPOLIST=`curl --silent -u $GHBU_UNAME:$GHBU_PASSWD ${GHBU_API}/user/repos -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g'`
@@ -55,6 +60,14 @@ REPOLIST=$(curl --silent -u "$GHBU_UNAME:$GHBU_PASSWD" "${GHBU_API}/orgs/${GHBU_
 $GHBU_SILENT || echo "found $(echo "$REPOLIST" | wc -w) repositories."
 
 
+=======
+REPOLIST=$(curl --silent -H "authToken:$GITHUB_TOKEN" "${GHBU_API}/orgs/${GHBU_ORG}/repos" -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g')
+# NOTE: if you're backing up a *user's* repos, not an organizations, use this instead:
+#REPOLIST=`curl --silent -H "Authorization: token $GITHUB_TOKEN" ${GHBU_API}/user/repos?type=owner -q | grep "\"name\"" | awk -F': "' '{print $2}' | sed -e 's/",//g'`
+
+$GHBU_SILENT || echo "found $(echo "$REPOLIST" | wc -w) repositories."
+
+>>>>>>> first commit into the repo containing all the files
 $GHBU_SILENT || (echo "" && echo "=== BACKING UP ===" && echo "")
 
 for REPO in $REPOLIST; do
@@ -65,7 +78,11 @@ for REPO in $REPOLIST; do
    "${GHBU_GIT_CLONE_CMD[@]}" "git@${GHBU_GITHOST}:${GHBU_ORG}/${REPO}.wiki.git" "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.wiki-${TSTAMP}.git" 2>/dev/null && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.wiki-${TSTAMP}.git"
 
    $GHBU_SILENT || echo "Backing up ${GHBU_ORG}/${REPO} issues"
+<<<<<<< HEAD
    curl --silent -u "$GHBU_UNAME:$GHBU_PASSWD" "${GHBU_API}/repos/${GHBU_ORG}/${REPO}/issues" -q > "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.issues-${TSTAMP}" && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.issues-${TSTAMP}"
+=======
+   curl --silent -H "Authorization: token $GITHUB_TOKEN" "${GHBU_API}/repos/${GHBU_ORG}/${REPO}/issues" -q > "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.issues-${TSTAMP}" && tgz "${GHBU_BACKUP_DIR}/${GHBU_ORG}-${REPO}.issues-${TSTAMP}"
+>>>>>>> first commit into the repo containing all the files
 done
 
 if $GHBU_PRUNE_OLD; then
@@ -75,5 +92,26 @@ if $GHBU_PRUNE_OLD; then
   find "$GHBU_BACKUP_DIR" -name '*.tar.gz' -mtime "+$GHBU_PRUNE_AFTER_N_DAYS" -exec rm -fv {} > /dev/null \; 
 fi
 
+<<<<<<< HEAD
+=======
+$GHBU_SILENT || (echo "" && echo "=== UPLOADING ===" && echo "")
+$GHBU_SILENT || echo -n "Pushing files to s3..."
+
+#for d in */ ; do
+#  cd "$d"
+#  for tar in $(find . -name '*.tar.gz'); do
+#    cat "$tar" > backup-github.tar.gz
+#  done
+#done
+
+cd $GHBU_BACKUP_DIR && cat *.tar.gz > backup-github.tar.gz
+
+aws s3 cp s3://$S3_BUCKET/config/public-keys/mdlr+backup@paddle.com.pub public-key.pub
+
+openssl enc -aes-256-cbc -salt -in backup-github.tar.gz -out backup-github.tar.gz.enc -pass file:public-key.pub
+
+aws s3 --region us-east-1 cp backup-github.tar.gz.enc s3://$S3_BUCKET/backup/backup-github/
+
+>>>>>>> first commit into the repo containing all the files
 $GHBU_SILENT || (echo "" && echo "=== DONE ===" && echo "")
 $GHBU_SILENT || (echo "GitHub backup completed." && echo "")
