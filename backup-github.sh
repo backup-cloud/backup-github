@@ -104,13 +104,19 @@ $GHBU_SILENT || echo -n "Pushing files to s3..."
 #  done
 #done
 
-cd $GHBU_BACKUP_DIR && cat *.tar.gz > backup-github.tar.gz
+DATE=`date "+%Y-%m-%d_%H-%M-%S"`
 
-aws s3 cp s3://$S3_BUCKET/config/public-keys/mdlr+backup@paddle.com.pub public-key.pub
+cd $GHBU_BACKUP_DIR && cat *.tar.gz > backup-github-$DATE.tar.gz
 
-openssl enc -aes-256-cbc -salt -in backup-github.tar.gz -out backup-github.tar.gz.enc -pass file:public-key.pub
+python get_base_repo.py
 
-aws s3 --region us-east-1 cp backup-github.tar.gz.enc s3://$S3_BUCKET/backup/backup-github/
+python call_base_backup.py backup-github-$DATE.tar.gz
+
+#aws s3 cp s3://$S3_BUCKET/config/public-keys/mdlr+backup@paddle.com.pub public-key.pub
+
+#openssl enc -aes-256-cbc -salt -in backup-github.tar.gz -out backup-github.tar.gz.enc -pass file:public-key.pub
+
+aws s3 --region us-east-1 cp backup-github-$DATE.tar.gz.gpg s3://$S3_BUCKET/backup/backup-github/
 
 >>>>>>> first commit into the repo containing all the files
 $GHBU_SILENT || (echo "" && echo "=== DONE ===" && echo "")

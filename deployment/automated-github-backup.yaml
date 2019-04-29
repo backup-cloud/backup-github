@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creating automation to perform the github backup using ECS Fargate
+
+Parameters:
+  GithubAutomatedBackupClusterName:
+    Type: String
+    Description: Name of the backup github cluster
+  BackupGithubFunctionsBucket:
+    Type: String
+    Description: S3 bucket responsible for having the lamdba functions
+  ParamSubnets:
+    Type: String
+    Description: subnets ids to deploy the cluster
+  ParamSecGroups:
+    Type: String
+    Description: fargate default security group id
+  FargateExecutionRole:
+    Type: String
+    Description: fargate task execution role
+
+Resources:
+  # ECS cluster 
+  GithubAutomatedBackupECSCluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: !Ref GithubAutomatedBackupClusterName
+
+  # Fargate Task
+  GithubAutomatedBackupECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      ContainerDefinitions: 
+        -
+          Name: 'backup-github'
+          Image: '659542948624.dkr.ecr.us-east-1.amazonaws.com/backup-github:latest'
+          LogConfiguration: 
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: '/fargate/task/backup-github'
+              awslogs-region: 'us-east-1'
+              awslogs-stream-prefix: 'fargate'
+      Cpu: 256
+      ExecutionRoleArn: !Ref FargateExecutionRole
+      Family: 'task_backup-github'
+      Memory: 512
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+        - 'FARGATE'
+  # IAM
+  # Lambda role
+  GithubAutomatedBackupER:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerServiceFullAccess
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+  # Lambda
+  GithubAutomatedBackupFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn:
+        - GithubAutomatedBackupER
+    Properties:
+      FunctionName: "GithubAutomatedBackupFunction"
+      Handler: GithubAutomatedBackup.lambda_handler
+      Runtime: python3.6
+      Environment:
+        Variables:
+          CLUSTER: !Ref GithubAutomatedBackupECSCluster
+          SECURITY_GROUPS: !Ref ParamSecGroups
+          SUBNETS: !Ref ParamSubnets
+          TASK_DEFINITION: !Ref GithubAutomatedBackupECSTaskDefinition
+      Role: !GetAtt GithubAutomatedBackupER.Arn
+      Timeout: '30'
+      Code:
+        S3Bucket: !Ref BackupGithubFunctionsBucket
+        S3Key: "GithubAutomatedBackup.zip"
+
+  # Cloudwatch
+  GithubAutomatedBackupEventRule:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "ScheduledRule"
+      ScheduleExpression: "cron(0 1 * * ? *)"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: !GetAtt GithubAutomatedBackupFunction.Arn
+          Id: "GithubAutomatedBackup"
+  
+  GithubAutomatedBackupLambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      Principal: events.amazonaws.com
+      FunctionName: !GetAtt
+        - GithubAutomatedBackupFunction
+        - Arn
+      SourceArn: !GetAtt GithubAutomatedBackupEventRule.Arn
