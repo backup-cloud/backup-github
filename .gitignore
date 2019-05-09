@@ -5,7 +5,6 @@ id_rsa
 *~
 *.env
 *venv
-aws_credentials*
 *password*
 \#*
 *environment
