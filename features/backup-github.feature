@@ -3,17 +3,18 @@ Feature: backup data from Paddle's Github Repositories
 In order provide backups of our Github data, paddle system engineering
 team would like to have a system which makes a backup of the current Github Repositories into an S3 location.
 
-    
-    Scenario: store  backup in S3
-    given that I have configured a lambda in AWS
-     and that I have the bash script to perform the backup
-     and that I have created a fargate task
-     and that I have an S3 backup bucket where I have write access
-     and that I have a file in S3 to backup
-     and that I have an ECS role which gives me all needed permissions
-    when I run my backup container giving the base path
-    then a backup should be created in the S3 destination bucket
-     and that backup should contain my data
+    Background: we have prepared to run encrypted backups
+    given I have access to an account for doing backups
+        and I have a private public key pair
+        and the public key from that key pair is stored in an s3 bucket
+        
+    Scenario: store encrypted backup in S3
+    given that I have configured my settings in SSM
+     and that I have a github repo to backup
+     and that I have a backup context configured with matching users
+    when I request a backup of that repo using the context
+    then a backup object should be created in the S3 destination bucket
+     and if I decrypt that file the content with the private key it should match the original repo
 
     @wip
     Scenario: backup the github repos with encryption then restore with decryption
