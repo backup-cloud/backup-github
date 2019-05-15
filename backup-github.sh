@@ -84,11 +84,13 @@ $GHBU_SILENT || echo -n "Pushing files to s3..."
 #  done
 #done
 
+cd $GHBU_BACKUP_DIR && cat *.tar.gz > backup-github.tar.gz
+
+cd .. && python3 call_base_backup.py github-backups/backup-github.tar.gz
+
 DATE=`date "+%Y-%m-%d_%H-%M-%S"`
 
-cd $GHBU_BACKUP_DIR && cat *.tar.gz > backup-github-$DATE.tar.gz
-
-cd .. && python3 call_base_backup.py github-backups/backup-github-$DATE.tar.gz
+mv github-backups/backup-github.tar.gz.gpg github-backups/backup-github-$DATE.tar.gz.gpg
 
 aws s3 --region us-east-1 cp github-backups/backup-github-$DATE.tar.gz.gpg s3://$S3_BUCKET/backup/backup-github/
 

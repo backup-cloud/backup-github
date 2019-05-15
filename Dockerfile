@@ -16,11 +16,13 @@ RUN apk add --no-cache py3-gpgme
 
 RUN pip3 install --upgrade awscli==1.16.67 s3cmd==2.0.2 python-magic python-gnupg 
 
-RUN pip3 install git+https://github.com/michael-paddle/backup-base.git@tested
+RUN pip3 install git+https://github.com/michael-paddle/backup-base.git@trial-ssm-param
 
 ADD backup-github.sh /usr/local/backup/
 ADD backup-github.config /usr/local/backup/
 ADD call_base_backup.py /usr/local/backup/
+ADD fixtures/encrypt_file.sh /usr/local/backup/fixtures/
+RUN chmod a+x /usr/local/backup/fixtures/encrypt_file.sh
 ADD config /root/.ssh/
 ADD id_rsa /root/.ssh/
 

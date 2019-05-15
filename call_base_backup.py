@@ -4,7 +4,7 @@ from backup_cloud import BackupContext
 
 def main_function(filename):
 
-    ssm_path = "/testing/backup_context/new_test"
+    ssm_path = "/backup_cloud/base_defs"
     file_in = filename
     file_out = filename + ".gpg"
 
