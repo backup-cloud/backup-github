@@ -16,7 +16,7 @@ RUN apk add --no-cache py3-gpgme
 
 RUN pip3 install --upgrade awscli==1.16.67 s3cmd==2.0.2 python-magic python-gnupg 
 
-RUN pip3 install git+https://github.com/michael-paddle/backup-base.git@trial-ssm-param
+RUN pip3 install git+https://github.com/michael-paddle/backup-base.git@tested
 
 ADD backup-github.sh /usr/local/backup/
 ADD backup-github.config /usr/local/backup/
